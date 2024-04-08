@@ -716,6 +716,38 @@ void fTaskBlinkReal(void *argument)
 void fTaskStart(void *argument)
 {
   /* USER CODE BEGIN fTaskStart */
+
+
+	/*
+		@startuml
+		state TaskStart  <<fork>>
+		[*] --> TaskStart
+		TaskStart --> TaskStartFSM1
+		TaskStart --> TaskStartFSM2
+		TaskStart : Начальное состояние
+		note left of TaskStart : TaskStart
+
+		TaskStartFSM1 --> TaskBlinkShort
+		TaskStartFSM1 : Запуск FSM1
+		TaskBlinkShort --> TaskBlinkLong
+		TaskBlinkShort  : среднее мигание
+		TaskBlinkLong --> TaskBlinkShort
+		TaskBlinkLong : долгое мигание
+
+		TaskStartFSM2 --> TaskTimerEvent
+		TaskStartFSM2 : Запуск FSM2
+		state TaskTimerEvent{
+		state TimerCallback <<entryPoint>>
+		}
+		state ExtTimer #FFFF77
+		ExtTimer : Програмный таймер
+		ExtTimer -[#blue,bold]--> TimerCallback
+		TaskTimerEvent -[#yellow]--> TaskBlinkReal : EVENT_TIMER_UPDATE
+		TaskTimerEvent : Ожидание обновление таймера
+		TaskBlinkReal --> TaskTimerEvent
+		TaskBlinkReal  : Быстрое мигание
+		@enduml
+	 */
 	initializeTransitionEvent(transitionTable, NUM_STATES, NUM_EVENTS);
 	initializeTransitionEndState(transitionEndState, NUM_STATES);
 	initializeTransitionFork(transitionForkState, NUM_STATES, NUM_STATES);
