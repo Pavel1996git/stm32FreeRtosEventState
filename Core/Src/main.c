@@ -28,6 +28,7 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticTimer_t osStaticTimerDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -91,17 +92,17 @@ const osThreadAttr_t TaskStateHandle_attributes = {
   .stack_size = sizeof(TaskStateHandleBuffer),
   .priority = (osPriority_t) osPriorityRealtime,
 };
-/* Definitions for TaskEventHandle */
-osThreadId_t TaskEventHandleHandle;
+/* Definitions for TaskExtEventHan */
+osThreadId_t TaskExtEventHanHandle;
 uint32_t TaskEventHandleBuffer[ 128 ];
 osStaticThreadDef_t TaskEventHandleControlBlock;
-const osThreadAttr_t TaskEventHandle_attributes = {
-  .name = "TaskEventHandle",
+const osThreadAttr_t TaskExtEventHan_attributes = {
+  .name = "TaskExtEventHan",
   .cb_mem = &TaskEventHandleControlBlock,
   .cb_size = sizeof(TaskEventHandleControlBlock),
   .stack_mem = &TaskEventHandleBuffer[0],
   .stack_size = sizeof(TaskEventHandleBuffer),
-  .priority = (osPriority_t) osPriorityHigh7,
+  .priority = (osPriority_t) osPriorityAboveNormal3,
 };
 /* Definitions for TaskStart */
 osThreadId_t TaskStartHandle;
@@ -114,6 +115,42 @@ const osThreadAttr_t TaskStart_attributes = {
   .stack_mem = &TaskStartBuffer[0],
   .stack_size = sizeof(TaskStartBuffer),
   .priority = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for TaskTimerEvent */
+osThreadId_t TaskTimerEventHandle;
+uint32_t TaskTimerEventBuffer[ 128 ];
+osStaticThreadDef_t TaskTimerEventControlBlock;
+const osThreadAttr_t TaskTimerEvent_attributes = {
+  .name = "TaskTimerEvent",
+  .cb_mem = &TaskTimerEventControlBlock,
+  .cb_size = sizeof(TaskTimerEventControlBlock),
+  .stack_mem = &TaskTimerEventBuffer[0],
+  .stack_size = sizeof(TaskTimerEventBuffer),
+  .priority = (osPriority_t) osPriorityAboveNormal1,
+};
+/* Definitions for TaskStartFSM1 */
+osThreadId_t TaskStartFSM1Handle;
+uint32_t TaskStartFSM1Buffer[ 128 ];
+osStaticThreadDef_t TaskStartFSM1ControlBlock;
+const osThreadAttr_t TaskStartFSM1_attributes = {
+  .name = "TaskStartFSM1",
+  .cb_mem = &TaskStartFSM1ControlBlock,
+  .cb_size = sizeof(TaskStartFSM1ControlBlock),
+  .stack_mem = &TaskStartFSM1Buffer[0],
+  .stack_size = sizeof(TaskStartFSM1Buffer),
+  .priority = (osPriority_t) osPriorityHigh1,
+};
+/* Definitions for TaskStartFSM2 */
+osThreadId_t TaskStartFSM2Handle;
+uint32_t TaskStartFSM2Buffer[ 128 ];
+osStaticThreadDef_t TaskStartFSM2ControlBlock;
+const osThreadAttr_t TaskStartFSM2_attributes = {
+  .name = "TaskStartFSM2",
+  .cb_mem = &TaskStartFSM2ControlBlock,
+  .cb_size = sizeof(TaskStartFSM2ControlBlock),
+  .stack_mem = &TaskStartFSM2Buffer[0],
+  .stack_size = sizeof(TaskStartFSM2Buffer),
+  .priority = (osPriority_t) osPriorityHigh2,
 };
 /* Definitions for QueueState */
 osMessageQueueId_t QueueStateHandle;
@@ -181,6 +218,36 @@ const osMessageQueueAttr_t myQueue3_attributes = {
   .mq_mem = &myQueue3Buffer,
   .mq_size = sizeof(myQueue3Buffer)
 };
+/* Definitions for myQueue4 */
+osMessageQueueId_t myQueue4Handle;
+uint8_t myQueue4Buffer[ 4 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t myQueue4ControlBlock;
+const osMessageQueueAttr_t myQueue4_attributes = {
+  .name = "myQueue4",
+  .cb_mem = &myQueue4ControlBlock,
+  .cb_size = sizeof(myQueue4ControlBlock),
+  .mq_mem = &myQueue4Buffer,
+  .mq_size = sizeof(myQueue4Buffer)
+};
+/* Definitions for myQueue5 */
+osMessageQueueId_t myQueue5Handle;
+uint8_t myQueue5Buffer[ 4 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t myQueue5ControlBlock;
+const osMessageQueueAttr_t myQueue5_attributes = {
+  .name = "myQueue5",
+  .cb_mem = &myQueue5ControlBlock,
+  .cb_size = sizeof(myQueue5ControlBlock),
+  .mq_mem = &myQueue5Buffer,
+  .mq_size = sizeof(myQueue5Buffer)
+};
+/* Definitions for TimerBlinkDelay */
+osTimerId_t TimerBlinkDelayHandle;
+osStaticTimerDef_t TimerBlinkDelayControlBlock;
+const osTimerAttr_t TimerBlinkDelay_attributes = {
+  .name = "TimerBlinkDelay",
+  .cb_mem = &TimerBlinkDelayControlBlock,
+  .cb_size = sizeof(TimerBlinkDelayControlBlock),
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -194,6 +261,10 @@ void fTaskBlinkReal(void *argument);
 void fTaskStateHandler(void *argument);
 void fTaskEventHandler(void *argument);
 void fTaskStart(void *argument);
+void fTaskTimerEvent(void *argument);
+void fTaskStartFSM1(void *argument);
+void fTaskStartFSM2(void *argument);
+void CallbackTimerBlinkDelay(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -212,15 +283,20 @@ typedef enum {
 	TaskStateHandle,
 	TTaskEventHandle,
 	TaskStart,
+	TaskTimerEvent,
+	TaskStartFSM1,
+	TaskStartFSM2,
     NUM_STATES
 } State_t;
 
 typedef enum {
-	END_START,
-	END_BLIND_SHORT,
-	END_BLIND_LONG,
-	sdgf,
-	grt,
+	EVENT_END_START,
+	EVENT_END_BLIND_SHORT,
+	EVENT_END_BLIND_LONG,
+	EVENT_END_BLIND_REAL,
+	EVENT_START_FSM_1,
+	EVENT_START_FSM_2,
+	EVENT_TIMER_UPDATE,
 	fgrf45f,
     NUM_EVENTS
 } Event_t;
@@ -297,6 +373,10 @@ int main(void)
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
+  /* Create the timer(s) */
+  /* creation of TimerBlinkDelay */
+  TimerBlinkDelayHandle = osTimerNew(CallbackTimerBlinkDelay, osTimerPeriodic, NULL, &TimerBlinkDelay_attributes);
+
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
@@ -320,6 +400,12 @@ int main(void)
   /* creation of myQueue3 */
   myQueue3Handle = osMessageQueueNew (4, sizeof(uint16_t), &myQueue3_attributes);
 
+  /* creation of myQueue4 */
+  myQueue4Handle = osMessageQueueNew (4, sizeof(uint16_t), &myQueue4_attributes);
+
+  /* creation of myQueue5 */
+  myQueue5Handle = osMessageQueueNew (4, sizeof(uint16_t), &myQueue5_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -337,11 +423,20 @@ int main(void)
   /* creation of TaskStateHandle */
   TaskStateHandleHandle = osThreadNew(fTaskStateHandler, NULL, &TaskStateHandle_attributes);
 
-  /* creation of TaskEventHandle */
-  TaskEventHandleHandle = osThreadNew(fTaskEventHandler, NULL, &TaskEventHandle_attributes);
+  /* creation of TaskExtEventHan */
+  TaskExtEventHanHandle = osThreadNew(fTaskEventHandler, NULL, &TaskExtEventHan_attributes);
 
   /* creation of TaskStart */
   TaskStartHandle = osThreadNew(fTaskStart, NULL, &TaskStart_attributes);
+
+  /* creation of TaskTimerEvent */
+  TaskTimerEventHandle = osThreadNew(fTaskTimerEvent, NULL, &TaskTimerEvent_attributes);
+
+  /* creation of TaskStartFSM1 */
+  TaskStartFSM1Handle = osThreadNew(fTaskStartFSM1, NULL, &TaskStartFSM1_attributes);
+
+  /* creation of TaskStartFSM2 */
+  TaskStartFSM2Handle = osThreadNew(fTaskStartFSM2, NULL, &TaskStartFSM2_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -589,34 +684,9 @@ void fTaskEventHandler(void *argument)
 * @retval None
 */
 /* USER CODE END Header_fTaskStart */
-/*
-typedef enum {
-	TaskBlinkLong,
-	TaskBlinkShort,
-	TaskBlinkReal,
-	TaskStateHandle,
-	TTaskEventHandle,
-	TaskStart,
-    NUM_STATES
-} State_t;
-
-typedef enum {
-	END_START,
-	QueueMyEvent,
-	myQueue0,
-	myQueue1,
-	myQueue2,
-	myQueue3,
-    NUM_EVENTS
-} Event_t;
-*/
 void fTaskStart(void *argument)
 {
   /* USER CODE BEGIN fTaskStart */
-
-  /* Infinite loop */
-  for(;;)
-  {
 	initializeTransitionTable((int8_t **)transitionTable, NUM_STATES, NUM_EVENTS);
 	addToTransitionTable(TaskStart, TaskBlinkShort, END_START);
 	addToTransitionTable(TaskBlinkShort, TaskBlinkLong, END_BLIND_SHORT);
@@ -624,6 +694,12 @@ void fTaskStart(void *argument)
 
 	createStateQueueMapping(TaskStart, myQueue0Handle);
 
+	State_t newState = transitionTable[NUM_STATES][NUM_EVENTS];
+	handleTransition
+	xQueueSend(QueueStateHandle, &newState, portMAX_DELAY);
+  /* Infinite loop */
+  for(;;)
+  {
 
 
 	State_t currentState;
@@ -631,6 +707,68 @@ void fTaskStart(void *argument)
     osDelay(1);
   }
   /* USER CODE END fTaskStart */
+}
+
+/* USER CODE BEGIN Header_fTaskTimerEvent */
+/**
+* @brief Function implementing the TaskTimerEvent thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_fTaskTimerEvent */
+void fTaskTimerEvent(void *argument)
+{
+  /* USER CODE BEGIN fTaskTimerEvent */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END fTaskTimerEvent */
+}
+
+/* USER CODE BEGIN Header_fTaskStartFSM1 */
+/**
+* @brief Function implementing the TaskStartFSM1 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_fTaskStartFSM1 */
+void fTaskStartFSM1(void *argument)
+{
+  /* USER CODE BEGIN fTaskStartFSM1 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END fTaskStartFSM1 */
+}
+
+/* USER CODE BEGIN Header_fTaskStartFSM2 */
+/**
+* @brief Function implementing the TaskStartFSM2 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_fTaskStartFSM2 */
+void fTaskStartFSM2(void *argument)
+{
+  /* USER CODE BEGIN fTaskStartFSM2 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END fTaskStartFSM2 */
+}
+
+/* CallbackTimerBlinkDelay function */
+void CallbackTimerBlinkDelay(void *argument)
+{
+  /* USER CODE BEGIN CallbackTimerBlinkDelay */
+
+  /* USER CODE END CallbackTimerBlinkDelay */
 }
 
 /**
