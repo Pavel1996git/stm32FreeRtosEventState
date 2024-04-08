@@ -152,28 +152,6 @@ const osThreadAttr_t TaskStartFSM2_attributes = {
   .stack_size = sizeof(TaskStartFSM2Buffer),
   .priority = (osPriority_t) osPriorityHigh2,
 };
-/* Definitions for QueueState */
-osMessageQueueId_t QueueStateHandle;
-uint8_t QueueEventBuffer[ 16 * sizeof( uint16_t ) ];
-osStaticMessageQDef_t QueueEventControlBlock;
-const osMessageQueueAttr_t QueueState_attributes = {
-  .name = "QueueState",
-  .cb_mem = &QueueEventControlBlock,
-  .cb_size = sizeof(QueueEventControlBlock),
-  .mq_mem = &QueueEventBuffer,
-  .mq_size = sizeof(QueueEventBuffer)
-};
-/* Definitions for QueueMyEvent */
-osMessageQueueId_t QueueMyEventHandle;
-uint8_t QueueMyEventBuffer[ 16 * sizeof( uint16_t ) ];
-osStaticMessageQDef_t QueueMyEventControlBlock;
-const osMessageQueueAttr_t QueueMyEvent_attributes = {
-  .name = "QueueMyEvent",
-  .cb_mem = &QueueMyEventControlBlock,
-  .cb_size = sizeof(QueueMyEventControlBlock),
-  .mq_mem = &QueueMyEventBuffer,
-  .mq_size = sizeof(QueueMyEventBuffer)
-};
 /* Definitions for myQueue0 */
 osMessageQueueId_t myQueue0Handle;
 uint8_t myQueue0Buffer[ 4 * sizeof( uint16_t ) ];
@@ -239,6 +217,17 @@ const osMessageQueueAttr_t myQueue5_attributes = {
   .cb_size = sizeof(myQueue5ControlBlock),
   .mq_mem = &myQueue5Buffer,
   .mq_size = sizeof(myQueue5Buffer)
+};
+/* Definitions for myQueue6 */
+osMessageQueueId_t myQueue6Handle;
+uint8_t myQueue6Buffer[ 4 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t myQueue6ControlBlock;
+const osMessageQueueAttr_t myQueue6_attributes = {
+  .name = "myQueue6",
+  .cb_mem = &myQueue6ControlBlock,
+  .cb_size = sizeof(myQueue6ControlBlock),
+  .mq_mem = &myQueue6Buffer,
+  .mq_size = sizeof(myQueue6Buffer)
 };
 /* Definitions for TimerBlinkDelay */
 osTimerId_t TimerBlinkDelayHandle;
@@ -315,6 +304,12 @@ typedef enum {
 
 // Тип для таблицы переходов
 int8_t transitionTable[NUM_STATES][NUM_EVENTS];
+
+// Тип для таблицы переходов
+int8_t transitionEndState[NUM_STATES];
+
+// Тип для таблицы переходов
+int8_t transitionForkState[NUM_STATES][NUM_STATES];
 /*
 // Структура для связи состояния и очереди
 typedef struct {
@@ -382,12 +377,6 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* creation of QueueState */
-  QueueStateHandle = osMessageQueueNew (16, sizeof(uint16_t), &QueueState_attributes);
-
-  /* creation of QueueMyEvent */
-  QueueMyEventHandle = osMessageQueueNew (16, sizeof(uint16_t), &QueueMyEvent_attributes);
-
   /* creation of myQueue0 */
   myQueue0Handle = osMessageQueueNew (4, sizeof(uint16_t), &myQueue0_attributes);
 
@@ -405,6 +394,9 @@ int main(void)
 
   /* creation of myQueue5 */
   myQueue5Handle = osMessageQueueNew (4, sizeof(uint16_t), &myQueue5_attributes);
+
+  /* creation of myQueue6 */
+  myQueue6Handle = osMessageQueueNew (4, sizeof(uint16_t), &myQueue6_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -530,7 +522,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void initializeTransitionTable(int8_t **table, uint8_t num_states, uint8_t num_events) {
+void initializeTransitionEvent(int8_t **table, uint8_t num_states, uint8_t num_events) {
     // Заполнение таблицы состояний значением -1
     for (uint8_t i = 0; i < num_states; ++i) {
         for (uint8_t j = 0; j < num_events; ++j) {
@@ -539,7 +531,33 @@ void initializeTransitionTable(int8_t **table, uint8_t num_states, uint8_t num_e
     }
 }
 
-void addToTransitionTable(State_t initial_state, State_t new_state, Event_t event) {
+void initializeTransitionFork(int8_t **table, uint8_t num_states, uint8_t num_new_states) {
+    // Заполнение таблицы состояний значением -1
+    for (uint8_t i = 0; i < num_states; ++i) {
+        for (uint8_t j = 0; j < num_new_states; ++j) {
+            table[i][j] = -1;
+        }
+    }
+}
+
+void initializeTransitionEndState(int8_t table[], uint8_t num_states) {
+    // Заполнение таблицы окончаний состояний значением -1
+    for (uint8_t i = 0; i < num_states; ++i) {
+        table[i] = -1;
+    }
+}
+void addToTransitionFork(State_t initial_state, State_t new_state) {
+    // Проверяем, что переданные состояния валидны
+    if (initial_state >= NUM_STATES || new_state >= NUM_STATES) {
+        // Выводим сообщение об ошибке или принимаем другие меры
+        return;
+    }
+
+    // Заполняем массив transitionForkState
+    transitionForkState[initial_state][new_state] = 1; // Здесь 1 может быть любым другим значением в зависимости от вашей логики
+}
+
+void addToTransitionEvent(State_t initial_state, State_t new_state, Event_t event) {
     // Проверяем, что переданные состояния и событие валидны
     if (initial_state >= NUM_STATES || new_state >= NUM_STATES || event >= NUM_EVENTS) {
         // Выводим сообщение об ошибке или принимаем другие меры
@@ -548,6 +566,19 @@ void addToTransitionTable(State_t initial_state, State_t new_state, Event_t even
 
     // Заполняем таблицу переходов
     transitionTable[initial_state][event] = new_state;
+}
+
+
+
+void addToTransitionEndState(State_t initial_state, State_t new_state)
+{
+	// Проверяем, что переданные состояния и событие валидны
+	    if (initial_state >= NUM_STATES || new_state >= NUM_STATES) {
+	        // Выводим сообщение об ошибке или принимаем другие меры
+	        return;
+	    }
+	    // Заполняем таблицу переходов
+	    transitionEndState[NUM_STATES] = new_state;
 }
 
 State_t handleTransition(Event_t event, State_t currentState) {
@@ -583,6 +614,43 @@ osMessageQueueId_t getQueueForState(State_t state) {
 void MessageQueueState(State_t state) {
 	xQueueSend(getQueueForState(state), &state, pdMS_TO_TICKS(DELAY_QUEUE));
 }
+
+void sendToTransitionFork(State_t currentState) {
+    // Проверяем, что текущее состояние валидно
+    if (currentState >= NUM_STATES) {
+        // Выводим сообщение об ошибке или принимаем другие меры
+        return;
+    }
+
+    // Проходим по всем возможным состояниям
+    for (State_t new_state = 0; new_state < NUM_STATES; ++new_state) {
+        // Проверяем, есть ли переход от текущего состояния к новому состоянию
+        if (transitionForkState[currentState][new_state] == 1) {
+            // Отправляем сообщение в очередь соответствующего нового состояния
+        	MessageQueueState(new_state);
+            //xQueueSend(getQueueForState(new_state), &new_state, pdMS_TO_TICKS(DELAY_QUEUE));
+        }
+    }
+}
+
+void sendToTransitionEvent(State_t currentState, Event_t event)
+{
+	MessageQueueState(handleTransition(event, currentState));
+}
+void sendToTransitionEndState(State_t currentState)
+{
+	MessageQueueState(transitionEndState[currentState]);
+}
+
+void waitForOwnState(State_t currentState) {
+    // Ожидаем получение текущего состояния из очереди
+    xQueueReceive(getQueueForState(currentState), &currentState, portMAX_DELAY);
+}
+
+void waitForOwnEvent(State_t currentState, Event_t event) {
+    // Ожидаем получение текущего состояния из очереди
+    xQueueReceive(getQueueForState(currentState), &event, portMAX_DELAY);
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_fTaskBlinkLong */
@@ -595,12 +663,22 @@ void MessageQueueState(State_t state) {
 void fTaskBlinkLong(void *argument)
 {
   /* USER CODE BEGIN 5 */
-	State_t newState = transitionTable[NUM_STATES][NUM_EVENTS];
-	xQueueSend(QueueStateHandle, &newState, portMAX_DELAY);
+	State_t currentState = TaskBlinkLong;
+	const uint32_t xFrequency = 1000; // 1000 миллисекунд
+	const TickType_t xTransitionTime = pdMS_TO_TICKS(6000); // 6 секунд
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  waitForOwnState(currentState);
+
+	  TickType_t xLastWakeTime = xTaskGetTickCount();
+	  while((xTaskGetTickCount() - xLastWakeTime) < xTransitionTime)
+	  {
+		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); // Выполнение действий для состояния 1
+		  osDelay(xFrequency); // Задержка в тиках времени FreeRTOS
+	  }
+		sendToTransitionEndState(currentState);
+	    osDelay(1);
   }
   /* USER CODE END 5 */
 }
@@ -615,10 +693,22 @@ void fTaskBlinkLong(void *argument)
 void fTaskBlinkShort(void *argument)
 {
   /* USER CODE BEGIN fTaskBlinkShort */
+	State_t currentState = TaskBlinkShort;
+	const uint32_t xFrequency = 500; // 500 миллисекунд
+	const TickType_t xTransitionTime = pdMS_TO_TICKS(6000); // 6 секунд
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  waitForOwnState(currentState);
+
+	  TickType_t xLastWakeTime = xTaskGetTickCount();
+	  while((xTaskGetTickCount() - xLastWakeTime) < xTransitionTime)
+	  {
+		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); // Выполнение действий для состояния 1
+		  osDelay(xFrequency); // Задержка в тиках времени FreeRTOS
+	  }
+		sendToTransitionEndState(currentState);
+	    osDelay(1);
   }
   /* USER CODE END fTaskBlinkShort */
 }
@@ -633,10 +723,22 @@ void fTaskBlinkShort(void *argument)
 void fTaskBlinkReal(void *argument)
 {
   /* USER CODE BEGIN fTaskBlinkReal */
+	State_t currentState = TaskBlinkReal;
+	const uint32_t xFrequency = 100; // 100 миллисекунд
+	const TickType_t xTransitionTime = pdMS_TO_TICKS(2000); // 6 секунд
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  waitForOwnState(currentState);
+
+	  TickType_t xLastWakeTime = xTaskGetTickCount();
+	  while((xTaskGetTickCount() - xLastWakeTime) < xTransitionTime)
+	  {
+		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); // Выполнение действий для состояния 1
+		  osDelay(xFrequency); // Задержка в тиках времени FreeRTOS
+	  }
+		sendToTransitionEndState(currentState);
+	    osDelay(1);
   }
   /* USER CODE END fTaskBlinkReal */
 }
@@ -687,24 +789,35 @@ void fTaskEventHandler(void *argument)
 void fTaskStart(void *argument)
 {
   /* USER CODE BEGIN fTaskStart */
-	initializeTransitionTable((int8_t **)transitionTable, NUM_STATES, NUM_EVENTS);
-	addToTransitionTable(TaskStart, TaskBlinkShort, END_START);
-	addToTransitionTable(TaskBlinkShort, TaskBlinkLong, END_BLIND_SHORT);
-	addToTransitionTable(TaskBlinkLong, TaskBlinkShort, END_BLIND_LONG);
+	initializeTransitionEvent((int8_t **)transitionTable, NUM_STATES, NUM_EVENTS);
+	initializeTransitionEndState(transitionEndState, NUM_STATES);
+	initializeTransitionFork((int8_t **)transitionForkState, NUM_STATES, NUM_STATES);
+
+	addToTransitionFork(TaskStart, TaskStartFSM1);
+	addToTransitionFork(TaskStart, TaskStartFSM2);
+
+	addToTransitionEndState(TaskStartFSM1, TaskBlinkShort);
+	addToTransitionEndState(TaskBlinkShort, TaskBlinkLong);
+	addToTransitionEndState(TaskStartFSM2, TaskTimerEvent);
+	addToTransitionEndState(TaskBlinkReal, TaskTimerEvent);
+
+	addToTransitionEvent(TaskTimerEvent, TaskBlinkReal, EVENT_TIMER_UPDATE);
 
 	createStateQueueMapping(TaskStart, myQueue0Handle);
+	createStateQueueMapping(TaskStartFSM1, myQueue1Handle);
+	createStateQueueMapping(TaskStartFSM2, myQueue2Handle);
+	createStateQueueMapping(TaskBlinkShort, myQueue3Handle);
+	createStateQueueMapping(TaskBlinkLong, myQueue4Handle);
+	createStateQueueMapping(TaskBlinkReal, myQueue5Handle);
+	createStateQueueMapping(TaskTimerEvent, myQueue6Handle);
 
-	State_t newState = transitionTable[NUM_STATES][NUM_EVENTS];
-	handleTransition
-	xQueueSend(QueueStateHandle, &newState, portMAX_DELAY);
+	State_t currentState = TaskStart;
   /* Infinite loop */
   for(;;)
   {
-
-
-	State_t currentState;
-	xQueueReceive(QueueStateHandle, &currentState, portMAX_DELAY);
-    osDelay(1);
+	sendToTransitionFork(currentState);
+	waitForOwnState(currentState);
+	  osDelay(1);
   }
   /* USER CODE END fTaskStart */
 }
@@ -719,9 +832,14 @@ void fTaskStart(void *argument)
 void fTaskTimerEvent(void *argument)
 {
   /* USER CODE BEGIN fTaskTimerEvent */
+	State_t currentState = TaskTimerEvent;
+	Event_t event = NUM_EVENTS;
   /* Infinite loop */
   for(;;)
   {
+	waitForOwnState(currentState);
+
+	waitForOwnEvent(currentState, event);
     osDelay(1);
   }
   /* USER CODE END fTaskTimerEvent */
@@ -737,9 +855,13 @@ void fTaskTimerEvent(void *argument)
 void fTaskStartFSM1(void *argument)
 {
   /* USER CODE BEGIN fTaskStartFSM1 */
+	State_t currentState = TaskStartFSM1;
   /* Infinite loop */
   for(;;)
   {
+	waitForOwnState(currentState);
+
+	sendToTransitionEndState(currentState);
     osDelay(1);
   }
   /* USER CODE END fTaskStartFSM1 */
@@ -755,9 +877,13 @@ void fTaskStartFSM1(void *argument)
 void fTaskStartFSM2(void *argument)
 {
   /* USER CODE BEGIN fTaskStartFSM2 */
+	State_t currentState = TaskStartFSM2;
   /* Infinite loop */
   for(;;)
   {
+	waitForOwnState(currentState);
+
+	sendToTransitionEndState(currentState);
     osDelay(1);
   }
   /* USER CODE END fTaskStartFSM2 */
