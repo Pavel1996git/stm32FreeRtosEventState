@@ -1,0 +1,17 @@
+../Core/Src/main.c:260:5:main	1
+../Core/Src/main.c:375:6:SystemClock_Config	3
+../Core/Src/main.c:412:13:MX_GPIO_Init	1
+../Core/Src/main.c:438:6:initializeTransitionTable	3
+../Core/Src/main.c:447:6:addToTransitionTable	4
+../Core/Src/main.c:458:9:handleTransition	2
+../Core/Src/main.c:478:6:createStateQueueMapping	1
+../Core/Src/main.c:484:20:getQueueForState	1
+../Core/Src/main.c:488:6:MessageQueueState	1
+../Core/Src/main.c:500:6:fTaskBlinkLong	1
+../Core/Src/main.c:520:6:fTaskBlinkShort	1
+../Core/Src/main.c:538:6:fTaskBlinkReal	1
+../Core/Src/main.c:556:6:fTaskStateHandler	1
+../Core/Src/main.c:574:6:fTaskEventHandler	1
+../Core/Src/main.c:613:6:fTaskStart	1
+../Core/Src/main.c:644:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:661:6:Error_Handler	1
