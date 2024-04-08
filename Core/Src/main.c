@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "queue.h"
+#include "FreeRtosUML.h"
+#define DELAY_QUEUE 15000
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -236,7 +238,7 @@ void CallbackTimerBlinkDelay(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-#define DELAY_QUEUE 15000
+
 // Определение состояний и событий
 
 typedef enum {
@@ -247,24 +249,15 @@ typedef enum {
 	TaskTimerEvent,
 	TaskStartFSM1,
 	TaskStartFSM2,
-    NUM_STATES
+    NUM_STATES_MAX
 } State_t;
 
 typedef enum {
 	EVENT_TIMER_UPDATE,
-    NUM_EVENTS
+    NUM_EVENTS_MAX
 } Event_t;
 
-State_t arrState[] = {
-		TaskBlinkLong,
-		TaskBlinkShort,
-		TaskBlinkReal,
-		TaskStart,
-		TaskTimerEvent,
-		TaskStartFSM1,
-		TaskStartFSM2,
-	    NUM_STATES
-	};
+/*
 // Тип для таблицы переходов
 int8_t transitionTable[NUM_STATES][NUM_EVENTS];
 
@@ -273,17 +266,10 @@ int8_t transitionEndState[NUM_STATES];
 
 // Тип для таблицы переходов
 int8_t transitionForkState[NUM_STATES][NUM_STATES];
-/*
-// Структура для связи состояния и очереди
-typedef struct {
-    State_t state;
-    osMessageQueueId_t queueHandle;
-} StateQueueMapping_t;
-*/
 
 // Создание массива структур для ассоциации состояний и очередей
 osMessageQueueId_t stateQueueMappings[NUM_STATES];
-
+*/
 
 /* USER CODE END 0 */
 
@@ -393,7 +379,6 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-  int8_t transitionTable[NUM_STATES][NUM_EVENTS];
   //initializeTransitionTable((int8_t **)transitionTable, NUM_STATES, NUM_EVENTS);
   /* USER CODE END RTOS_EVENTS */
 
@@ -479,6 +464,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/*
 void initializeTransitionEvent(int8_t table[][NUM_EVENTS], uint8_t num_states, uint8_t num_events) {
     // Заполнение таблицы состояний значением -1
     for (uint8_t i = 0; i < num_states; ++i) {
@@ -613,6 +599,7 @@ void waitForOwnEvent(State_t currentState, Event_t* event) {
     // Ожидаем получение текущего состояния из очереди
     xQueueReceive(getQueueForState(currentState), event, portMAX_DELAY);
 }
+*/
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_fTaskBlinkLong */
@@ -670,7 +657,7 @@ void fTaskBlinkShort(void *argument)
 		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); // Выполнение действий для состояния 1
 		  osDelay(xFrequency); // Задержка в тиках времени FreeRTOS
 	  }
-		sendToTransitionEndState(arrState[TaskBlinkShort]);
+		sendToTransitionEndState(currentState);
 	    osDelay(1);
   }
   /* USER CODE END fTaskBlinkShort */

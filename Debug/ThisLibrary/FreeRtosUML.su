@@ -1,0 +1,16 @@
+../ThisLibrary/FreeRtosUML.c:31:6:initializeTransitionEvent	24	static
+../ThisLibrary/FreeRtosUML.c:48:6:initializeTransitionFork	24	static
+../ThisLibrary/FreeRtosUML.c:65:6:initializeTransitionEndState	24	static
+../ThisLibrary/FreeRtosUML.c:79:6:addToTransitionFork	16	static
+../ThisLibrary/FreeRtosUML.c:98:6:addToTransitionEvent	16	static
+../ThisLibrary/FreeRtosUML.c:117:6:addToTransitionEndState	16	static
+../ThisLibrary/FreeRtosUML.c:137:8:handleTransition	24	static
+../ThisLibrary/FreeRtosUML.c:157:6:createStateQueueMapping	16	static
+../ThisLibrary/FreeRtosUML.c:170:20:getQueueForState	16	static
+../ThisLibrary/FreeRtosUML.c:182:6:MessageQueueState	16	static
+../ThisLibrary/FreeRtosUML.c:195:6:MessageQueueEvent	16	static
+../ThisLibrary/FreeRtosUML.c:207:6:sendToTransitionFork	24	static
+../ThisLibrary/FreeRtosUML.c:232:6:sendToTransitionEvent	24	static
+../ThisLibrary/FreeRtosUML.c:246:6:sendToTransitionEndState	24	static
+../ThisLibrary/FreeRtosUML.c:260:6:waitForOwnState	16	static
+../ThisLibrary/FreeRtosUML.c:274:6:waitForOwnEvent	16	static

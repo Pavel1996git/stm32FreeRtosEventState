@@ -1,0 +1,16 @@
+../ThisLibrary/FreeRtosUML.c:31:6:initializeTransitionEvent	3
+../ThisLibrary/FreeRtosUML.c:48:6:initializeTransitionFork	3
+../ThisLibrary/FreeRtosUML.c:65:6:initializeTransitionEndState	2
+../ThisLibrary/FreeRtosUML.c:79:6:addToTransitionFork	3
+../ThisLibrary/FreeRtosUML.c:98:6:addToTransitionEvent	4
+../ThisLibrary/FreeRtosUML.c:117:6:addToTransitionEndState	3
+../ThisLibrary/FreeRtosUML.c:137:8:handleTransition	2
+../ThisLibrary/FreeRtosUML.c:157:6:createStateQueueMapping	1
+../ThisLibrary/FreeRtosUML.c:170:20:getQueueForState	1
+../ThisLibrary/FreeRtosUML.c:182:6:MessageQueueState	1
+../ThisLibrary/FreeRtosUML.c:195:6:MessageQueueEvent	1
+../ThisLibrary/FreeRtosUML.c:207:6:sendToTransitionFork	4
+../ThisLibrary/FreeRtosUML.c:232:6:sendToTransitionEvent	1
+../ThisLibrary/FreeRtosUML.c:246:6:sendToTransitionEndState	1
+../ThisLibrary/FreeRtosUML.c:260:6:waitForOwnState	1
+../ThisLibrary/FreeRtosUML.c:274:6:waitForOwnEvent	1
