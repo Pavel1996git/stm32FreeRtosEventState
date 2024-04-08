@@ -46,7 +46,7 @@ typedef StaticTimer_t osStaticTimerDef_t;
 /* Private variables ---------------------------------------------------------*/
 /* Definitions for TaskBlinkLong */
 osThreadId_t TaskBlinkLongHandle;
-uint32_t TaskBlinkLongBuffer[ 128 ];
+uint32_t TaskBlinkLongBuffer[ 168 ];
 osStaticThreadDef_t TaskBlinkLongControlBlock;
 const osThreadAttr_t TaskBlinkLong_attributes = {
   .name = "TaskBlinkLong",
@@ -58,7 +58,7 @@ const osThreadAttr_t TaskBlinkLong_attributes = {
 };
 /* Definitions for TaskBlinkShort */
 osThreadId_t TaskBlinkShortHandle;
-uint32_t TaskBlinkShortBuffer[ 128 ];
+uint32_t TaskBlinkShortBuffer[ 168 ];
 osStaticThreadDef_t TaskBlinkShortControlBlock;
 const osThreadAttr_t TaskBlinkShort_attributes = {
   .name = "TaskBlinkShort",
@@ -70,7 +70,7 @@ const osThreadAttr_t TaskBlinkShort_attributes = {
 };
 /* Definitions for TaskBlinkReal */
 osThreadId_t TaskBlinkRealHandle;
-uint32_t TaskBlinkRealBuffer[ 128 ];
+uint32_t TaskBlinkRealBuffer[ 168 ];
 osStaticThreadDef_t TaskBlinkRealControlBlock;
 const osThreadAttr_t TaskBlinkReal_attributes = {
   .name = "TaskBlinkReal",
@@ -80,33 +80,9 @@ const osThreadAttr_t TaskBlinkReal_attributes = {
   .stack_size = sizeof(TaskBlinkRealBuffer),
   .priority = (osPriority_t) osPriorityLow3,
 };
-/* Definitions for TaskStateHandle */
-osThreadId_t TaskStateHandleHandle;
-uint32_t TaskStateHandleBuffer[ 128 ];
-osStaticThreadDef_t TaskStateHandleControlBlock;
-const osThreadAttr_t TaskStateHandle_attributes = {
-  .name = "TaskStateHandle",
-  .cb_mem = &TaskStateHandleControlBlock,
-  .cb_size = sizeof(TaskStateHandleControlBlock),
-  .stack_mem = &TaskStateHandleBuffer[0],
-  .stack_size = sizeof(TaskStateHandleBuffer),
-  .priority = (osPriority_t) osPriorityRealtime,
-};
-/* Definitions for TaskExtEventHan */
-osThreadId_t TaskExtEventHanHandle;
-uint32_t TaskEventHandleBuffer[ 128 ];
-osStaticThreadDef_t TaskEventHandleControlBlock;
-const osThreadAttr_t TaskExtEventHan_attributes = {
-  .name = "TaskExtEventHan",
-  .cb_mem = &TaskEventHandleControlBlock,
-  .cb_size = sizeof(TaskEventHandleControlBlock),
-  .stack_mem = &TaskEventHandleBuffer[0],
-  .stack_size = sizeof(TaskEventHandleBuffer),
-  .priority = (osPriority_t) osPriorityAboveNormal3,
-};
 /* Definitions for TaskStart */
 osThreadId_t TaskStartHandle;
-uint32_t TaskStartBuffer[ 128 ];
+uint32_t TaskStartBuffer[ 168 ];
 osStaticThreadDef_t TaskStartControlBlock;
 const osThreadAttr_t TaskStart_attributes = {
   .name = "TaskStart",
@@ -114,11 +90,11 @@ const osThreadAttr_t TaskStart_attributes = {
   .cb_size = sizeof(TaskStartControlBlock),
   .stack_mem = &TaskStartBuffer[0],
   .stack_size = sizeof(TaskStartBuffer),
-  .priority = (osPriority_t) osPriorityHigh,
+  .priority = (osPriority_t) osPriorityRealtime4,
 };
 /* Definitions for TaskTimerEvent */
 osThreadId_t TaskTimerEventHandle;
-uint32_t TaskTimerEventBuffer[ 128 ];
+uint32_t TaskTimerEventBuffer[ 168 ];
 osStaticThreadDef_t TaskTimerEventControlBlock;
 const osThreadAttr_t TaskTimerEvent_attributes = {
   .name = "TaskTimerEvent",
@@ -126,11 +102,11 @@ const osThreadAttr_t TaskTimerEvent_attributes = {
   .cb_size = sizeof(TaskTimerEventControlBlock),
   .stack_mem = &TaskTimerEventBuffer[0],
   .stack_size = sizeof(TaskTimerEventBuffer),
-  .priority = (osPriority_t) osPriorityAboveNormal1,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for TaskStartFSM1 */
 osThreadId_t TaskStartFSM1Handle;
-uint32_t TaskStartFSM1Buffer[ 128 ];
+uint32_t TaskStartFSM1Buffer[ 168 ];
 osStaticThreadDef_t TaskStartFSM1ControlBlock;
 const osThreadAttr_t TaskStartFSM1_attributes = {
   .name = "TaskStartFSM1",
@@ -138,11 +114,11 @@ const osThreadAttr_t TaskStartFSM1_attributes = {
   .cb_size = sizeof(TaskStartFSM1ControlBlock),
   .stack_mem = &TaskStartFSM1Buffer[0],
   .stack_size = sizeof(TaskStartFSM1Buffer),
-  .priority = (osPriority_t) osPriorityHigh1,
+  .priority = (osPriority_t) osPriorityRealtime1,
 };
 /* Definitions for TaskStartFSM2 */
 osThreadId_t TaskStartFSM2Handle;
-uint32_t TaskStartFSM2Buffer[ 128 ];
+uint32_t TaskStartFSM2Buffer[ 168 ];
 osStaticThreadDef_t TaskStartFSM2ControlBlock;
 const osThreadAttr_t TaskStartFSM2_attributes = {
   .name = "TaskStartFSM2",
@@ -150,7 +126,7 @@ const osThreadAttr_t TaskStartFSM2_attributes = {
   .cb_size = sizeof(TaskStartFSM2ControlBlock),
   .stack_mem = &TaskStartFSM2Buffer[0],
   .stack_size = sizeof(TaskStartFSM2Buffer),
-  .priority = (osPriority_t) osPriorityHigh2,
+  .priority = (osPriority_t) osPriorityRealtime2,
 };
 /* Definitions for myQueue0 */
 osMessageQueueId_t myQueue0Handle;
@@ -247,8 +223,6 @@ static void MX_GPIO_Init(void);
 void fTaskBlinkLong(void *argument);
 void fTaskBlinkShort(void *argument);
 void fTaskBlinkReal(void *argument);
-void fTaskStateHandler(void *argument);
-void fTaskEventHandler(void *argument);
 void fTaskStart(void *argument);
 void fTaskTimerEvent(void *argument);
 void fTaskStartFSM1(void *argument);
@@ -269,8 +243,6 @@ typedef enum {
 	TaskBlinkLong,
 	TaskBlinkShort,
 	TaskBlinkReal,
-	TaskStateHandle,
-	TTaskEventHandle,
 	TaskStart,
 	TaskTimerEvent,
 	TaskStartFSM1,
@@ -279,29 +251,20 @@ typedef enum {
 } State_t;
 
 typedef enum {
-	EVENT_END_START,
-	EVENT_END_BLIND_SHORT,
-	EVENT_END_BLIND_LONG,
-	EVENT_END_BLIND_REAL,
-	EVENT_START_FSM_1,
-	EVENT_START_FSM_2,
 	EVENT_TIMER_UPDATE,
-	fgrf45f,
     NUM_EVENTS
 } Event_t;
-/*
-typedef enum {
-	QueueState,
-	QueueMyEvent,
-	myQueue0,
-	myQueue1,
-	myQueue2,
-	myQueue3,
-    NUM_EVENTS
-} Event_t;
-*/
 
-
+State_t arrState[] = {
+		TaskBlinkLong,
+		TaskBlinkShort,
+		TaskBlinkReal,
+		TaskStart,
+		TaskTimerEvent,
+		TaskStartFSM1,
+		TaskStartFSM2,
+	    NUM_STATES
+	};
 // Тип для таблицы переходов
 int8_t transitionTable[NUM_STATES][NUM_EVENTS];
 
@@ -370,7 +333,7 @@ int main(void)
 
   /* Create the timer(s) */
   /* creation of TimerBlinkDelay */
-  TimerBlinkDelayHandle = osTimerNew(CallbackTimerBlinkDelay, osTimerPeriodic, NULL, &TimerBlinkDelay_attributes);
+  TimerBlinkDelayHandle = osTimerNew(CallbackTimerBlinkDelay, osTimerOnce, NULL, &TimerBlinkDelay_attributes);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -411,12 +374,6 @@ int main(void)
 
   /* creation of TaskBlinkReal */
   TaskBlinkRealHandle = osThreadNew(fTaskBlinkReal, NULL, &TaskBlinkReal_attributes);
-
-  /* creation of TaskStateHandle */
-  TaskStateHandleHandle = osThreadNew(fTaskStateHandler, NULL, &TaskStateHandle_attributes);
-
-  /* creation of TaskExtEventHan */
-  TaskExtEventHanHandle = osThreadNew(fTaskEventHandler, NULL, &TaskExtEventHan_attributes);
 
   /* creation of TaskStart */
   TaskStartHandle = osThreadNew(fTaskStart, NULL, &TaskStart_attributes);
@@ -522,7 +479,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void initializeTransitionEvent(int8_t **table, uint8_t num_states, uint8_t num_events) {
+void initializeTransitionEvent(int8_t table[][NUM_EVENTS], uint8_t num_states, uint8_t num_events) {
     // Заполнение таблицы состояний значением -1
     for (uint8_t i = 0; i < num_states; ++i) {
         for (uint8_t j = 0; j < num_events; ++j) {
@@ -531,7 +488,7 @@ void initializeTransitionEvent(int8_t **table, uint8_t num_states, uint8_t num_e
     }
 }
 
-void initializeTransitionFork(int8_t **table, uint8_t num_states, uint8_t num_new_states) {
+void initializeTransitionFork(int8_t table[][NUM_STATES], uint8_t num_states, uint8_t num_new_states) {
     // Заполнение таблицы состояний значением -1
     for (uint8_t i = 0; i < num_states; ++i) {
         for (uint8_t j = 0; j < num_new_states; ++j) {
@@ -578,7 +535,7 @@ void addToTransitionEndState(State_t initial_state, State_t new_state)
 	        return;
 	    }
 	    // Заполняем таблицу переходов
-	    transitionEndState[NUM_STATES] = new_state;
+	    transitionEndState[initial_state] = new_state;
 }
 
 State_t handleTransition(Event_t event, State_t currentState) {
@@ -615,6 +572,10 @@ void MessageQueueState(State_t state) {
 	xQueueSend(getQueueForState(state), &state, pdMS_TO_TICKS(DELAY_QUEUE));
 }
 
+void MessageQueueEvent(State_t state, Event_t event) {
+	xQueueSend(getQueueForState(state), &event, pdMS_TO_TICKS(DELAY_QUEUE));
+}
+
 void sendToTransitionFork(State_t currentState) {
     // Проверяем, что текущее состояние валидно
     if (currentState >= NUM_STATES) {
@@ -642,14 +603,15 @@ void sendToTransitionEndState(State_t currentState)
 	MessageQueueState(transitionEndState[currentState]);
 }
 
-void waitForOwnState(State_t currentState) {
+void waitForOwnState(State_t* currentState) {
     // Ожидаем получение текущего состояния из очереди
-    xQueueReceive(getQueueForState(currentState), &currentState, portMAX_DELAY);
+    xQueueReceive(getQueueForState(*currentState), &currentState, portMAX_DELAY);
 }
 
-void waitForOwnEvent(State_t currentState, Event_t event) {
+
+void waitForOwnEvent(State_t currentState, Event_t* event) {
     // Ожидаем получение текущего состояния из очереди
-    xQueueReceive(getQueueForState(currentState), &event, portMAX_DELAY);
+    xQueueReceive(getQueueForState(currentState), event, portMAX_DELAY);
 }
 /* USER CODE END 4 */
 
@@ -669,7 +631,7 @@ void fTaskBlinkLong(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  waitForOwnState(currentState);
+	  waitForOwnState(&currentState);
 
 	  TickType_t xLastWakeTime = xTaskGetTickCount();
 	  while((xTaskGetTickCount() - xLastWakeTime) < xTransitionTime)
@@ -699,7 +661,8 @@ void fTaskBlinkShort(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  waitForOwnState(currentState);
+	  waitForOwnState(&currentState);
+	 //xQueueReceive(stateQueueMappings[currentState], &currentState, portMAX_DELAY);
 
 	  TickType_t xLastWakeTime = xTaskGetTickCount();
 	  while((xTaskGetTickCount() - xLastWakeTime) < xTransitionTime)
@@ -707,7 +670,7 @@ void fTaskBlinkShort(void *argument)
 		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13); // Выполнение действий для состояния 1
 		  osDelay(xFrequency); // Задержка в тиках времени FreeRTOS
 	  }
-		sendToTransitionEndState(currentState);
+		sendToTransitionEndState(arrState[TaskBlinkShort]);
 	    osDelay(1);
   }
   /* USER CODE END fTaskBlinkShort */
@@ -729,7 +692,7 @@ void fTaskBlinkReal(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  waitForOwnState(currentState);
+	  waitForOwnState(&currentState);
 
 	  TickType_t xLastWakeTime = xTaskGetTickCount();
 	  while((xTaskGetTickCount() - xLastWakeTime) < xTransitionTime)
@@ -743,42 +706,6 @@ void fTaskBlinkReal(void *argument)
   /* USER CODE END fTaskBlinkReal */
 }
 
-/* USER CODE BEGIN Header_fTaskStateHandler */
-/**
-* @brief Function implementing the TaskStateHandle thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_fTaskStateHandler */
-void fTaskStateHandler(void *argument)
-{
-  /* USER CODE BEGIN fTaskStateHandler */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END fTaskStateHandler */
-}
-
-/* USER CODE BEGIN Header_fTaskEventHandler */
-/**
-* @brief Function implementing the TaskEventHandle thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_fTaskEventHandler */
-void fTaskEventHandler(void *argument)
-{
-  /* USER CODE BEGIN fTaskEventHandler */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END fTaskEventHandler */
-}
-
 /* USER CODE BEGIN Header_fTaskStart */
 /**
 * @brief Function implementing the TaskStart thread.
@@ -789,15 +716,16 @@ void fTaskEventHandler(void *argument)
 void fTaskStart(void *argument)
 {
   /* USER CODE BEGIN fTaskStart */
-	initializeTransitionEvent((int8_t **)transitionTable, NUM_STATES, NUM_EVENTS);
+	initializeTransitionEvent(transitionTable, NUM_STATES, NUM_EVENTS);
 	initializeTransitionEndState(transitionEndState, NUM_STATES);
-	initializeTransitionFork((int8_t **)transitionForkState, NUM_STATES, NUM_STATES);
+	initializeTransitionFork(transitionForkState, NUM_STATES, NUM_STATES);
 
 	addToTransitionFork(TaskStart, TaskStartFSM1);
 	addToTransitionFork(TaskStart, TaskStartFSM2);
 
 	addToTransitionEndState(TaskStartFSM1, TaskBlinkShort);
 	addToTransitionEndState(TaskBlinkShort, TaskBlinkLong);
+	addToTransitionEndState(TaskBlinkLong, TaskBlinkShort);
 	addToTransitionEndState(TaskStartFSM2, TaskTimerEvent);
 	addToTransitionEndState(TaskBlinkReal, TaskTimerEvent);
 
@@ -816,7 +744,7 @@ void fTaskStart(void *argument)
   for(;;)
   {
 	sendToTransitionFork(currentState);
-	waitForOwnState(currentState);
+	waitForOwnState(&currentState);
 	  osDelay(1);
   }
   /* USER CODE END fTaskStart */
@@ -837,9 +765,11 @@ void fTaskTimerEvent(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	waitForOwnState(currentState);
+	waitForOwnState(&currentState);
+	osTimerStart(TimerBlinkDelayHandle, pdMS_TO_TICKS(10000));
+	waitForOwnEvent(currentState, &event);
+	sendToTransitionEvent(TaskTimerEvent, event);
 
-	waitForOwnEvent(currentState, event);
     osDelay(1);
   }
   /* USER CODE END fTaskTimerEvent */
@@ -859,7 +789,7 @@ void fTaskStartFSM1(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	waitForOwnState(currentState);
+	waitForOwnState(&currentState);
 
 	sendToTransitionEndState(currentState);
     osDelay(1);
@@ -881,7 +811,7 @@ void fTaskStartFSM2(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	waitForOwnState(currentState);
+	waitForOwnState(&currentState);
 
 	sendToTransitionEndState(currentState);
     osDelay(1);
@@ -893,7 +823,7 @@ void fTaskStartFSM2(void *argument)
 void CallbackTimerBlinkDelay(void *argument)
 {
   /* USER CODE BEGIN CallbackTimerBlinkDelay */
-
+	MessageQueueEvent(TaskTimerEvent, EVENT_TIMER_UPDATE);
   /* USER CODE END CallbackTimerBlinkDelay */
 }
 
