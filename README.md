@@ -60,8 +60,8 @@ TaskBlinkReal --> TaskTimerEvent
 TaskBlinkReal  : Fast blink 
 @enduml
 ```
-```c
 Then, based on this diagram, we set up the finite state machine in the fTaskStart task function. We initialize it with parameters corresponding to the diagram, add states for multithreading, and define transitions between them. Example code:
+```c
 // In the fTaskStart task function, initialize it with parameters corresponding to the diagram.
 initializeTransitionEvent(transitionTable, NUM_STATES, NUM_EVENTS);
 initializeTransitionEndState(transitionEndState, NUM_STATES);
