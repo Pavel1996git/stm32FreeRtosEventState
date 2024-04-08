@@ -28,7 +28,7 @@ For the correct operation of your project, it is recommended to follow the provi
 
 In the `main.c` file, more detailed examples of usage are provided. Below is a UML diagram created using PlantUML:
 
-![FSM](image.png)
+![FSM](image2.png)
 
 ```plantuml
 @startuml
@@ -59,6 +59,7 @@ TaskTimerEvent : Waiting for timer update
 TaskBlinkReal --> TaskTimerEvent  
 TaskBlinkReal  : Fast blink 
 @enduml
+
 ```
 Then, based on this diagram, we set up the finite state machine in the fTaskStart task function. We initialize it with parameters corresponding to the diagram, add states for multithreading, and define transitions between them. Example code:
 ```c
